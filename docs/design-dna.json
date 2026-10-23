@@ -1,0 +1,30 @@
+{
+  "reference": {
+    "source": "Screenshot of handeliaksesuar.com (user-provided, 2026-10-23)",
+    "measurement": { "method": "PIL median-cut quantize, 10 colors, browser chrome and taskbar cropped", "note": "design-dna repo script not bundled; measured with Python instead" },
+    "measured_palette": [
+      { "hex": "#ffffff", "coverage": 0.127, "role": "page background" },
+      { "hex": "#02070f", "coverage": 0.125, "role": "ticker + nav bar (near black)" },
+      { "hex": "#5c3420", "coverage": 0.115, "role": "photo shadows / brown" },
+      { "hex": "#efead9", "coverage": 0.114, "role": "hero cream" },
+      { "hex": "#c39e7e", "coverage": 0.110, "role": "skin / warm tan" },
+      { "hex": "#f9e5d3", "coverage": 0.092, "role": "promo top bar (peach)" },
+      { "hex": "#e8dab3", "coverage": null, "role": "logo gold (sampled)" }
+    ],
+    "style": "Turkish e-commerce jewelry: script gold logo, heavy black bars, countdown + marquee promos, full-bleed photo slider, WhatsApp float"
+  },
+  "butamsenlik": {
+    "design_system": {
+      "color": {
+        "ground": "#F6F1EC", "surface_blush": "#EEDFD8", "surface_sage": "#DFE5DC", "surface_mist": "#E3E4E8", "surface_sand": "#ECE3D6",
+        "ink": "#34292A", "ink_soft": "#6B5D5A", "gold": "#B0894F", "gold_light": "#E2C99A", "accent_rose": "#C98F88"
+      },
+      "typography": { "display": "Cormorant Garamond 500/600, tracking -0.02em, leading 0.95", "text": "Manrope 400/600, 17px, leading 1.55" },
+      "shape": { "buttons": "fully round", "images": "square corners" },
+      "elevation": "none at rest; surfaces separated by tone steps",
+      "motion": { "easing": "cubic-bezier(.2,.7,.2,1)", "reveal": "rise 24px, stagger 80ms", "reduced_motion": "all scroll devices become static" }
+    },
+    "design_style": { "mood": "soft, warm, intimate, quiet luxury", "change_from_reference": "black bars → espresso ink; peach/cream → blush, sage, mist; no countdown pressure" },
+    "visual_effects": { "parallax_hero": true, "horizontal_pan": true, "scroll_drawn_chain": true, "kinetic_text": true, "pointer_tilt": true, "webgl": false }
+  }
+}
