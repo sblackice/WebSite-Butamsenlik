@@ -12,7 +12,11 @@ const nextConfig: NextConfig = {
   serverExternalPackages: ["better-sqlite3"],
   experimental: {
     // Admin image uploads go through server actions (max 5 MB file + form fields).
-    serverActions: { bodySizeLimit: "6mb" },
+    serverActions: {
+      bodySizeLimit: "6mb",
+      // GitHub Codespaces serves the app through *.app.github.dev; allow that origin only there.
+      ...(process.env.CODESPACES === "true" ? { allowedOrigins: ["*.app.github.dev", "localhost:3000"] } : {}),
+    },
   },
   async headers() {
     return [

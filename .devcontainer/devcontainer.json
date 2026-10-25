@@ -1,0 +1,10 @@
+{
+  "name": "Butamsenlik Mağaza",
+  "image": "mcr.microsoft.com/devcontainers/javascript-node:22",
+  "postCreateCommand": "cd shop && npm ci && ([ -f .env ] || cp .env.example .env) && npx prisma migrate deploy && npm run db:seed",
+  "postAttachCommand": "cd shop && npm run dev",
+  "forwardPorts": [3000],
+  "portsAttributes": {
+    "3000": { "label": "Mağaza", "onAutoForward": "openBrowser" }
+  }
+}
