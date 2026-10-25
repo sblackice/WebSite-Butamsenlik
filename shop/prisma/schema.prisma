@@ -1,0 +1,342 @@
+// Butamsenlik shop schema.
+// Money is stored as integer kuruş (1 TL = 100) to avoid rounding errors.
+// SQLite is used for local development; switch provider to "postgresql" for production.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+// ---------- users & auth ----------
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  name         String
+  phone        String?
+  role         String   @default("CUSTOMER") // CUSTOMER | ADMIN
+  isActive     Boolean  @default(true)
+  marketingOk  Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  sessions    Session[]
+  resetTokens PasswordResetToken[]
+  addresses   Address[]
+  orders      Order[]
+  favorites   Favorite[]
+  carts       Cart[]
+}
+
+model Session {
+  id        String   @id // sha256 of the cookie token, never the token itself
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model PasswordResetToken {
+  id        String    @id @default(cuid())
+  tokenHash String    @unique
+  userId    String
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Address {
+  id         String  @id @default(cuid())
+  userId     String
+  title      String // e.g. "Ev", "İş"
+  fullName   String
+  phone      String
+  city       String
+  district   String
+  line       String
+  postalCode String?
+  isDefault  Boolean @default(false)
+  user       User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+// ---------- catalog ----------
+
+model Category {
+  id          String     @id @default(cuid())
+  name        String
+  slug        String     @unique
+  description String?
+  parentId    String?
+  sortOrder   Int        @default(0)
+  isActive    Boolean    @default(true)
+  parent      Category?  @relation("CategoryTree", fields: [parentId], references: [id], onDelete: SetNull)
+  children    Category[] @relation("CategoryTree")
+  products    Product[]
+
+  @@index([parentId])
+}
+
+model Product {
+  id             String   @id @default(cuid())
+  name           String
+  slug           String   @unique
+  description    String
+  details        String   @default("") // one feature per line
+  categoryId     String
+  price          Int // kuruş, what the customer pays
+  compareAtPrice Int? // kuruş, shown struck-through when higher than price
+  stock          Int      @default(0) // used when the product has no variants
+  sku            String?
+  metal          String? // altin | rose | gumus | celik  (filter)
+  material       String? // free text, e.g. "316L çelik üzeri altın kaplama"
+  isActive       Boolean  @default(true)
+  isFeatured     Boolean  @default(false)
+  isDemo         Boolean  @default(false) // demo catalog item, not a real product
+  salesCount     Int      @default(0) // increases when an order is paid
+  // Personalisation: NONE | LETTER | TEXT
+  personalization      String  @default("NONE")
+  personalizationLabel String?
+  personalizationMax   Int     @default(0)
+  searchText     String   @default("") // normalised name+description for search
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  category    Category            @relation(fields: [categoryId], references: [id])
+  images      ProductImage[]
+  variants    ProductVariant[]
+  favorites   Favorite[]
+  collections CollectionProduct[]
+  cartItems   CartItem[]
+  orderItems  OrderItem[]
+
+  @@index([categoryId])
+  @@index([isActive, createdAt])
+}
+
+model ProductImage {
+  id        String  @id @default(cuid())
+  productId String
+  url       String
+  alt       String  @default("")
+  sortOrder Int     @default(0)
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([productId])
+}
+
+// A variant is one buyable option, e.g. "Altın / 45 cm".
+model ProductVariant {
+  id         String      @id @default(cuid())
+  productId  String
+  name       String
+  sku        String?
+  priceDelta Int         @default(0) // kuruş added to product price
+  stock      Int         @default(0)
+  sortOrder  Int         @default(0)
+  product    Product     @relation(fields: [productId], references: [id], onDelete: Cascade)
+  cartItems  CartItem[]
+  orderItems OrderItem[]
+
+  @@index([productId])
+}
+
+model Collection {
+  id          String              @id @default(cuid())
+  name        String
+  slug        String              @unique
+  description String?
+  tone        String              @default("blush") // blush | sage | mist | sand
+  isFeatured  Boolean             @default(true)
+  sortOrder   Int                 @default(0)
+  products    CollectionProduct[]
+}
+
+model CollectionProduct {
+  collectionId String
+  productId    String
+  sortOrder    Int        @default(0)
+  collection   Collection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+  product      Product    @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@id([collectionId, productId])
+}
+
+model Favorite {
+  userId    String
+  productId String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@id([userId, productId])
+}
+
+// ---------- cart ----------
+
+model Cart {
+  id        String     @id @default(cuid())
+  userId    String?
+  couponCode String?
+  updatedAt DateTime   @updatedAt
+  createdAt DateTime   @default(now())
+  user      User?      @relation(fields: [userId], references: [id], onDelete: SetNull)
+  items     CartItem[]
+
+  @@index([userId])
+}
+
+model CartItem {
+  id              String          @id @default(cuid())
+  cartId          String
+  productId       String
+  variantId       String?
+  personalization String          @default("")
+  quantity        Int
+  cart            Cart            @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  product         Product         @relation(fields: [productId], references: [id], onDelete: Cascade)
+  variant         ProductVariant? @relation(fields: [variantId], references: [id], onDelete: Cascade)
+
+  @@index([cartId])
+}
+
+// ---------- promotions ----------
+
+model Coupon {
+  id          String    @id @default(cuid())
+  code        String    @unique // stored upper-case
+  type        String // PERCENT | FIXED
+  value       Int // percent (1-100) or kuruş
+  minSubtotal Int       @default(0) // kuruş
+  startsAt    DateTime?
+  endsAt      DateTime?
+  usageLimit  Int?
+  usedCount   Int       @default(0)
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+}
+
+// ---------- orders ----------
+
+model Order {
+  id          String   @id @default(cuid())
+  orderNumber String   @unique
+  accessKey   String // random secret so a guest can open their own order page
+  userId      String?
+  email       String
+  phone       String
+  // PENDING_PAYMENT | PAID | PREPARING | SHIPPED | DELIVERED | CANCELLED | REFUNDED
+  status      String   @default("PENDING_PAYMENT")
+  subtotal    Int
+  discount    Int      @default(0)
+  shippingFee Int      @default(0)
+  total       Int
+  couponCode  String?
+
+  shipName       String
+  shipCity       String
+  shipDistrict   String
+  shipLine       String
+  shipPostalCode String?
+
+  billingType   String // INDIVIDUAL | CORPORATE
+  billName      String
+  billCity      String
+  billDistrict  String
+  billLine      String
+  billTaxOffice String?
+  billTaxNumber String? // TCKN or VKN
+
+  note            String?
+  paymentMethod   String // DEMO | BANK_TRANSFER | (future: IYZICO, PAYTR ...)
+  paymentRef      String?
+  isTest          Boolean  @default(false) // true = demo order, no money moved
+  trackingNumber  String?
+  agreementsAt    DateTime // when the customer accepted pre-info + distance-sales texts
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  user   User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
+  items  OrderItem[]
+  events OrderEvent[]
+
+  @@index([userId])
+  @@index([status])
+}
+
+model OrderItem {
+  id              String          @id @default(cuid())
+  orderId         String
+  productId       String?
+  variantId       String?
+  name            String // snapshot at order time
+  variantName     String?
+  personalization String          @default("")
+  unitPrice       Int
+  quantity        Int
+  lineTotal       Int
+  order           Order           @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product         Product?        @relation(fields: [productId], references: [id], onDelete: SetNull)
+  variant         ProductVariant? @relation(fields: [variantId], references: [id], onDelete: SetNull)
+
+  @@index([orderId])
+}
+
+model OrderEvent {
+  id        String   @id @default(cuid())
+  orderId   String
+  status    String
+  note      String?
+  createdAt DateTime @default(now())
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId])
+}
+
+// ---------- storefront content ----------
+
+model Banner {
+  id        String  @id @default(cuid())
+  placement String  @default("HERO") // HERO | PROMO
+  eyebrow   String?
+  title     String
+  subtitle  String?
+  ctaLabel  String?
+  ctaHref   String?
+  imageUrl  String?
+  tone      String  @default("blush")
+  sortOrder Int     @default(0)
+  isActive  Boolean @default(true)
+}
+
+model Setting {
+  key   String @id
+  value String
+}
+
+model NewsletterSubscriber {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  createdAt DateTime @default(now())
+}
+
+model ContactMessage {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  subject   String
+  message   String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+}

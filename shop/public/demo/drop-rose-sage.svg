@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800" role="img" aria-label="Temsilî takı çizimi">
+<defs><radialGradient id="g" cx="50%" cy="42%" r="60%"><stop offset="0" stop-color="#fff" stop-opacity=".55"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient></defs>
+<rect width="800" height="800" fill="#DFE5DC"/><rect width="800" height="800" fill="url(#g)"/>
+<g transform="translate(160 150) scale(2.4)"><path d="M30 20 Q100 120 170 20" fill="none" stroke="#B5776B" stroke-width="3" stroke-dasharray="5 3"/> <path d="M100 96 l0 10" stroke="#B5776B" stroke-width="3"/> <path d="M100 106 C86 128 82 144 100 160 C118 144 114 128 100 106 Z" fill="#E7B9B3" stroke="#B5776B" stroke-width="4"/></g>
+<text x="772" y="776" text-anchor="end" font-family="Arial, sans-serif" font-size="20" fill="#6B5D5A" opacity=".7">temsilî çizim</text>
+</svg>

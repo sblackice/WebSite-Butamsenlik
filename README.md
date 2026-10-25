@@ -1,5 +1,9 @@
 # Butamsenlik
 
+> **Yeni: tam e-ticaret sitesi `shop/` klasöründe.** Sepet, ödeme adımı, üyelik ve yönetim paneli içerir.
+> Kurulum ve çalıştırma: [`shop/README.md`](shop/README.md). Referans analizi: [`docs/ETICARET-ANALIZ.md`](docs/ETICARET-ANALIZ.md).
+> Aşağıdaki tek sayfalık tanıtım sitesi (kök klasördeki `index.html`) olduğu gibi duruyor.
+
 "Bu tam senlik": altın kaplama takı markası için tek sayfalık web sitesi. Saf HTML, CSS ve JavaScript; kurulum gerekmez.
 
 ## Nasıl açılır
